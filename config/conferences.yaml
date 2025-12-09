@@ -1,0 +1,22 @@
+# Conference configurations
+conferences:
+  neurips:
+    name: "Conference on Neural Information Processing Systems"
+    short_name: "NeurIPS"
+    strategy: "static_html"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    rate_limit: 1
+
+  icml:
+    name: "International Conference on Machine Learning"
+    short_name: "ICML"
+    strategy: "static_html"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    rate_limit: 1
+
+  usenix_security:
+    name: "USENIX Security Symposium"
+    short_name: "USENIX Security"
+    strategy: "static_html"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    rate_limit: 1

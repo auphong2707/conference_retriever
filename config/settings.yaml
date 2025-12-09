@@ -1,0 +1,18 @@
+# Global settings
+
+# Output
+output_dir: "conference_retriever/output"
+format: "json"
+pretty_print: true
+
+# Caching
+cache_enabled: true
+cache_dir: "conference_retriever/.cache"
+cache_ttl: 2592000  # 30 days in seconds
+
+# Rate Limiting
+global_rate_limit: 1  # requests per second
+request_timeout: 30  # seconds
+
+# Logging
+log_level: "INFO"
