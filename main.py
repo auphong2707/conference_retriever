@@ -6,6 +6,8 @@ import argparse
 import json
 import os
 import sys
+import yaml
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -13,9 +15,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from retrievers.static_html import StaticHTMLRetriever
+from retrievers.openreview_api import OpenReviewRetriever
 from parsers.neurips_parser import NeurIPSParser
 from parsers.icml_parser import ICMLParser
 from parsers.usenix_parser import USENIXParser
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 
 PARSERS = {
@@ -25,13 +34,36 @@ PARSERS = {
 }
 
 
+def load_conference_config():
+    """Load conference configurations from YAML file"""
+    config_path = Path(__file__).parent / 'config' / 'conferences.yaml'
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    return config['conferences']
+
+
 def get_retriever(conference: str):
-    """Get retriever for a conference"""
-    if conference not in PARSERS:
-        raise ValueError(f"Conference '{conference}' not supported. Available: {list(PARSERS.keys())}")
+    """Get retriever for a conference based on its strategy"""
+    configs = load_conference_config()
     
-    parser = PARSERS[conference]
-    return StaticHTMLRetriever(conference, parser)
+    if conference not in configs:
+        available = list(configs.keys())
+        raise ValueError(f"Conference '{conference}' not supported. Available: {available}")
+    
+    config = configs[conference]
+    strategy = config.get('strategy', 'static_html')
+    
+    if strategy == 'static_html':
+        if conference not in PARSERS:
+            raise ValueError(f"No parser available for {conference}")
+        parser = PARSERS[conference]
+        return StaticHTMLRetriever(conference, parser)
+    
+    elif strategy == 'openreview':
+        return OpenReviewRetriever(conference, config)
+    
+    else:
+        raise ValueError(f"Unknown strategy '{strategy}' for {conference}")
 
 
 def save_papers(papers, output_path):
@@ -41,7 +73,7 @@ def save_papers(papers, output_path):
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(papers, f, indent=2, ensure_ascii=False)
     
-    print(f"\n✓ Saved {len(papers)} papers to {output_path}")
+    print(f"\nSaved {len(papers)} papers to {output_path}")
 
 
 def main():
@@ -51,7 +83,7 @@ def main():
     
     parser.add_argument(
         'conference',
-        choices=['neurips', 'icml', 'usenix'],
+        choices=['neurips', 'icml', 'usenix', 'iclr'],
         help='Conference to retrieve from'
     )
     
@@ -74,7 +106,7 @@ def main():
     
     parser.add_argument(
         '--output',
-        help='Output file path (default: conference_retriever/output/{conference}_{year}.json)'
+        help='Output file path (default: output/{conference}_{year}.json)'
     )
     
     args = parser.parse_args()
@@ -119,7 +151,7 @@ def main():
             filename = f"{args.conference}_{years[0]}.json"
         else:
             filename = f"{args.conference}_{years[0]}-{years[-1]}.json"
-        output_path = os.path.join("conference_retriever", "output", filename)
+        output_path = os.path.join("output", filename)
     
     # Save results
     save_papers(all_papers, output_path)

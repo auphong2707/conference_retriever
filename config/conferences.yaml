@@ -20,3 +20,20 @@ conferences:
     strategy: "static_html"
     years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
     rate_limit: 1
+
+  iclr:
+    name: "International Conference on Learning Representations"
+    short_name: "ICLR"
+    strategy: "openreview"
+    years_available: [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    rate_limit: 0.5
+    openreview_invitations:
+      2024: "ICLR.cc/2024/Conference/-/Submission"
+      2023: "ICLR.cc/2023/Conference/-/Blind_Submission"
+      2022: "ICLR.cc/2022/Conference/-/Blind_Submission"
+      2021: "ICLR.cc/2021/Conference/-/Blind_Submission"
+      2020: "ICLR.cc/2020/Conference/-/Blind_Submission"
+      2019: "ICLR.cc/2019/Conference/-/Blind_Submission"
+      2018: "ICLR.cc/2018/Conference/-/Blind_Submission"
+      2017: "ICLR.cc/2017/conference/-/submission"
+    filter_accepted_only: true
