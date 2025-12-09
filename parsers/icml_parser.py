@@ -11,7 +11,8 @@ class ICMLParser:
     
     # Volume mapping for ICML years
     VOLUME_MAP = {
-        2024: 235,
+        2025: 259,  # ICML 2025
+        2024: 235,  # ICML 2024
         2023: 202,
         2022: 162,
         2021: 139,
@@ -32,7 +33,12 @@ class ICMLParser:
     
     def parse(self, soup: BeautifulSoup, year: int) -> List[Dict]:
         """
-        Parse ICML papers from HTML
+        Parse ICML papers from HTML (proceedings.mlr.press format)
+        
+        The website structure has:
+        1. Title in a <p class="title"> element
+        2. Authors; Proceedings info in a <p class="details"> element
+        3. Links [abs][PDF][OpenReview] in a <p class="links"> element
         
         Args:
             soup: BeautifulSoup object
@@ -43,80 +49,85 @@ class ICMLParser:
         """
         papers = []
         
-        # Find all paper entries
-        paper_elements = soup.find_all('div', class_='paper') or \
-                        soup.find_all('article') or \
-                        soup.find_all('p', class_='title')
+        # Find all the link paragraphs (contain [abs] links)
+        volume = self.VOLUME_MAP.get(year, '')
+        link_paragraphs = soup.find_all('p', class_='links')
         
-        for elem in paper_elements:
+        for links_p in link_paragraphs:
             try:
+                # Find the abs link
+                abs_link = links_p.find('a', href=lambda h: h and f'/v{volume}/' in h and h.endswith('.html'))
+                if not abs_link:
+                    continue
+                
+                paper_url = abs_link.get('href', '')
+                if not paper_url.startswith('http'):
+                    paper_url = f"https://proceedings.mlr.press{paper_url}"
+                
+                # Navigate backwards to find title and authors (they have classes)
+                prev = links_p.previous_sibling
+                authors_p = None
+                title_p = None
+                
+                # Look for details paragraph (authors)
+                while prev:
+                    if hasattr(prev, 'name') and prev.name == 'p':
+                        if 'details' in prev.get('class', []):
+                            authors_p = prev
+                            break
+                    prev = prev.previous_sibling
+                
+                # Look for title paragraph
+                prev = links_p.previous_sibling
+                while prev:
+                    if hasattr(prev, 'name') and prev.name == 'p':
+                        if 'title' in prev.get('class', []):
+                            title_p = prev
+                            break
+                    prev = prev.previous_sibling
+                
+                if not title_p:
+                    continue
+                
                 # Extract title
-                title_elem = elem.find('p', class_='title') or \
-                            elem.find('span', class_='title') or \
-                            elem.find('a')
+                title = title_p.get_text(strip=True)
                 
-                if not title_elem:
+                # Skip if title seems wrong
+                if len(title) < 10:
                     continue
-                
-                title_link = title_elem.find('a') if title_elem.name != 'a' else title_elem
-                if not title_link:
-                    continue
-                
-                title = title_link.get_text(strip=True)
-                paper_url = title_link.get('href', '')
-                
-                # Make absolute URL if relative
-                if paper_url and not paper_url.startswith('http'):
-                    volume = self.VOLUME_MAP.get(year, '')
-                    paper_url = f"https://proceedings.mlr.press/v{volume}/{paper_url}"
                 
                 # Extract authors
-                authors_text = ""
-                authors_elem = elem.find('span', class_='authors') or \
-                              elem.find('p', class_='details')
-                
-                if authors_elem:
-                    # Get just the authors part
-                    authors_text = authors_elem.get_text(strip=True)
-                    # Remove "Proceedings of" etc
-                    if ';' in authors_text:
-                        authors_text = authors_text.split(';')[0]
-                
-                # Parse authors
                 authors = []
-                if authors_text:
-                    # Split by comma or semicolon
-                    author_names = [name.strip() for name in authors_text.replace(';', ',').split(',')]
-                    authors = [{"name": name} for name in author_names if name and len(name) > 1]
+                if authors_p:
+                    authors_text = authors_p.get_text(strip=True)
+                    # Format is: "Author1, Author2; Proceedings info; PMLR volume:pages"
+                    if ';' in authors_text:
+                        authors_part = authors_text.split(';')[0].strip()
+                        author_names = [name.strip() for name in authors_part.split(',')]
+                        authors = [{"name": name} for name in author_names if name and len(name) > 2]
                 
-                # Extract PDF link
-                pdf_url = ""
-                pdf_elem = elem.find('a', class_='pdf') or \
-                          elem.find('a', href=lambda x: x and '.pdf' in str(x))
+                # Find PDF link
+                pdf_link = links_p.find('a', href=lambda h: h and '.pdf' in h)
+                pdf_url = pdf_link.get('href') if pdf_link else paper_url.replace('.html', '.pdf')
                 
-                if pdf_elem:
-                    pdf_url = pdf_elem.get('href', '')
-                    if pdf_url and not pdf_url.startswith('http'):
-                        volume = self.VOLUME_MAP.get(year, '')
-                        pdf_url = f"https://proceedings.mlr.press/v{volume}/{pdf_url}"
+                # Generate paper ID
+                paper_id = paper_url.split('/')[-1].replace('.html', '')
                 
-                # Create paper ID
-                paper_id = f"icml_{year}_{hash(title) % 1000000}"
-                
+                # Create paper entry
                 paper = {
-                    "paper_id": paper_id,
-                    "title": title,
-                    "authors": authors,
-                    "conference": "ICML",
-                    "year": year,
-                    "url": paper_url,
-                    "pdf_url": pdf_url if pdf_url else None,
-                    "venue": "International Conference on Machine Learning",
-                    "source": "icml_website"
+                    'paper_id': f"icml_{year}_{paper_id}",
+                    'title': title,
+                    'authors': authors,
+                    'conference': 'ICML',
+                    'year': year,
+                    'url': paper_url,
+                    'pdf_url': pdf_url,
+                    'venue': f'International Conference on Machine Learning {year}',
+                    'source': 'mlr_press'
                 }
                 
                 papers.append(paper)
-            
+                
             except Exception as e:
                 # Skip malformed entries
                 continue

@@ -117,16 +117,16 @@ Papers are saved as JSON with the following schema:
 
 ```bash
 # Get NeurIPS 2023 papers
-python conference_retriever/main.py neurips --year 2023
+python main.py neurips --year 2023
 
 # Get ICML papers from 2020-2024
-python conference_retriever/main.py icml --years 2020-2024
+python main.py icml --years 2020-2024
 
 # Get first 10 USENIX Security 2024 papers
-python conference_retriever/main.py usenix --year 2024 --limit 10
+python main.py usenix --year 2024 --limit 10
 
 # Custom output path
-python conference_retriever/main.py neurips --year 2023 --output my_papers.json
+python main.py neurips --year 2023 --output my_papers.json
 ```
 
 ## License

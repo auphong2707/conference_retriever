@@ -5,9 +5,9 @@ Retrieves papers from conferences with static HTML pages
 import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict, Optional
-from .base_retriever import BaseRetriever
-from ..utils.rate_limiter import RateLimiter
-from ..utils.cache_manager import CacheManager
+from retrievers.base_retriever import BaseRetriever
+from utils.rate_limiter import RateLimiter
+from utils.cache_manager import CacheManager
 
 
 class StaticHTMLRetriever(BaseRetriever):

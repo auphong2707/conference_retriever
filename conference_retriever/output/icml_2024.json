@@ -1,0 +1,131 @@
+[
+  {
+    "paper_id": "icml_2024_abad-rocamora24a",
+    "title": "Revisiting Character-level Adversarial Attacks for Language Models",
+    "authors": [
+      {
+        "name": "Elias Abad Rocamora"
+      },
+      {
+        "name": "Yongtao Wu"
+      },
+      {
+        "name": "Fanghui Liu"
+      },
+      {
+        "name": "Grigorios Chrysos"
+      },
+      {
+        "name": "Volkan Cevher"
+      }
+    ],
+    "conference": "ICML",
+    "year": 2024,
+    "url": "https://proceedings.mlr.press/v235/abad-rocamora24a.html",
+    "pdf_url": "https://raw.githubusercontent.com/mlresearch/v235/main/assets/abad-rocamora24a/abad-rocamora24a.pdf",
+    "venue": "International Conference on Machine Learning 2024",
+    "source": "mlr_press"
+  },
+  {
+    "paper_id": "icml_2024_abe24a",
+    "title": "Adaptively Perturbed Mirror Descent for Learning in Games",
+    "authors": [
+      {
+        "name": "Kenshi Abe"
+      },
+      {
+        "name": "Kaito Ariu"
+      },
+      {
+        "name": "Mitsuki Sakamoto"
+      },
+      {
+        "name": "Atsushi Iwasaki"
+      }
+    ],
+    "conference": "ICML",
+    "year": 2024,
+    "url": "https://proceedings.mlr.press/v235/abe24a.html",
+    "pdf_url": "https://raw.githubusercontent.com/mlresearch/v235/main/assets/abe24a/abe24a.pdf",
+    "venue": "International Conference on Machine Learning 2024",
+    "source": "mlr_press"
+  },
+  {
+    "paper_id": "icml_2024_abhyankar24a",
+    "title": "InferCept: Efficient Intercept Support for Augmented Large Language Model Inference",
+    "authors": [
+      {
+        "name": "Reyna Abhyankar"
+      },
+      {
+        "name": "Zijian He"
+      },
+      {
+        "name": "Vikranth Srivatsa"
+      },
+      {
+        "name": "Hao Zhang"
+      },
+      {
+        "name": "Yiying Zhang"
+      }
+    ],
+    "conference": "ICML",
+    "year": 2024,
+    "url": "https://proceedings.mlr.press/v235/abhyankar24a.html",
+    "pdf_url": "https://raw.githubusercontent.com/mlresearch/v235/main/assets/abhyankar24a/abhyankar24a.pdf",
+    "venue": "International Conference on Machine Learning 2024",
+    "source": "mlr_press"
+  },
+  {
+    "paper_id": "icml_2024_acharya24a",
+    "title": "Balancing Feature Similarity and Label Variability for Optimal Size-Aware One-shot Subset Selection",
+    "authors": [
+      {
+        "name": "Abhinab Acharya"
+      },
+      {
+        "name": "Dayou Yu"
+      },
+      {
+        "name": "Qi Yu"
+      },
+      {
+        "name": "Xumin Liu"
+      }
+    ],
+    "conference": "ICML",
+    "year": 2024,
+    "url": "https://proceedings.mlr.press/v235/acharya24a.html",
+    "pdf_url": "https://raw.githubusercontent.com/mlresearch/v235/main/assets/acharya24a/acharya24a.pdf",
+    "venue": "International Conference on Machine Learning 2024",
+    "source": "mlr_press"
+  },
+  {
+    "paper_id": "icml_2024_achituve24a",
+    "title": "Bayesian Uncertainty for Gradient Aggregation in Multi-Task Learning",
+    "authors": [
+      {
+        "name": "Idan Achituve"
+      },
+      {
+        "name": "Idit Diamant"
+      },
+      {
+        "name": "Arnon Netzer"
+      },
+      {
+        "name": "Gal Chechik"
+      },
+      {
+        "name": "Ethan Fetaya"
+      }
+    ],
+    "conference": "ICML",
+    "year": 2024,
+    "url": "https://proceedings.mlr.press/v235/achituve24a.html",
+    "pdf_url": "https://raw.githubusercontent.com/mlresearch/v235/main/assets/achituve24a/achituve24a.pdf",
+    "venue": "International Conference on Machine Learning 2024",
+    "source": "mlr_press"
+  }
+]
