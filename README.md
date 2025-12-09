@@ -16,13 +16,13 @@ Retrieve papers from a conference:
 
 ```bash
 # Single year
-python conference_retriever/main.py neurips --year 2023
+python main.py neurips --year 2025
 
 # Multiple years
-python conference_retriever/main.py icml --years 2020-2023
+python main.py icml --years 2022-2025
 
 # With limit
-python conference_retriever/main.py usenix --year 2024 --limit 50
+python main.py usenix --year 2025 --limit 50
 ```
 
 ## Supported Conferences
