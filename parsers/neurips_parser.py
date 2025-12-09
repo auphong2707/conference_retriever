@@ -26,18 +26,13 @@ class NeurIPSParser:
         """
         papers = []
         
-        # Find all paper entries
-        paper_elements = soup.find_all('li', class_=lambda x: x and 'paper' in x.lower()) or \
-                        soup.find_all('div', class_=lambda x: x and 'paper' in x.lower())
-        
-        if not paper_elements:
-            # Try alternative structure
-            paper_elements = soup.find_all('li')
+        # Find all paper entries with class='conference'
+        paper_elements = soup.find_all('li', class_='conference')
         
         for elem in paper_elements:
             try:
-                # Extract title
-                title_elem = elem.find('a', href=lambda x: x and '/paper/' in x)
+                # Extract title and URL
+                title_elem = elem.find('a')
                 if not title_elem:
                     continue
                 
@@ -48,28 +43,35 @@ class NeurIPSParser:
                 if paper_url and not paper_url.startswith('http'):
                     paper_url = f"https://papers.neurips.cc{paper_url}"
                 
-                # Extract authors
-                authors_text = ""
-                authors_elem = elem.find('i') or elem.find('span', class_='authors')
+                # Extract PDF URL from hash in the paper URL
+                # URL format: /paper_files/paper/YEAR/hash/HASH-Abstract-Conference.html
+                # PDF format: /paper_files/paper/YEAR/file/HASH-Paper-Conference.pdf
+                pdf_url = None
+                if '/hash/' in paper_url:
+                    try:
+                        hash_part = paper_url.split('/hash/')[1].split('-')[0]
+                        pdf_url = f"https://papers.neurips.cc/paper_files/paper/{year}/file/{hash_part}-Paper-Conference.pdf"
+                    except IndexError:
+                        pass
+                
+                # Extract authors from <i> tag
+                authors = []
+                authors_elem = elem.find('i')
                 if authors_elem:
                     authors_text = authors_elem.get_text(strip=True)
-                
-                # Parse authors
-                authors = []
-                if authors_text:
+                    # Split by comma and clean up
                     author_names = [name.strip() for name in authors_text.split(',')]
                     authors = [{"name": name} for name in author_names if name]
                 
-                # Extract PDF link
-                pdf_url = ""
-                pdf_elem = elem.find('a', href=lambda x: x and '.pdf' in str(x))
-                if pdf_elem:
-                    pdf_url = pdf_elem.get('href', '')
-                    if pdf_url and not pdf_url.startswith('http'):
-                        pdf_url = f"https://papers.neurips.cc{pdf_url}"
-                
-                # Create paper ID
-                paper_id = f"neurips_{year}_{hash(title) % 1000000}"
+                # Create paper ID from hash
+                if '/hash/' in paper_url:
+                    try:
+                        hash_part = paper_url.split('/hash/')[1].split('-')[0]
+                        paper_id = f"neurips_{year}_{hash_part}"
+                    except IndexError:
+                        paper_id = f"neurips_{year}_{abs(hash(title)) % 1000000}"
+                else:
+                    paper_id = f"neurips_{year}_{abs(hash(title)) % 1000000}"
                 
                 paper = {
                     "paper_id": paper_id,
@@ -78,7 +80,7 @@ class NeurIPSParser:
                     "conference": "NeurIPS",
                     "year": year,
                     "url": paper_url,
-                    "pdf_url": pdf_url if pdf_url else None,
+                    "pdf_url": pdf_url,
                     "venue": "Conference on Neural Information Processing Systems",
                     "source": "neurips_website"
                 }
