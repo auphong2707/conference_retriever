@@ -37,3 +37,63 @@ conferences:
       2018: "ICLR.cc/2018/Conference/-/Blind_Submission"
       2017: "ICLR.cc/2017/conference/-/submission"
     filter_accepted_only: true
+
+  icse:
+    name: "International Conference on Software Engineering"
+    short_name: "ICSE"
+    strategy: "dblp_hybrid"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    dblp_venue: "ICSE"
+    rate_limit: 1.0
+    enrichment:
+      semantic_scholar: true
+
+  fse:
+    name: "Foundations of Software Engineering"
+    short_name: "FSE"
+    strategy: "dblp_hybrid"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    dblp_venue: "SIGSOFT FSE"
+    rate_limit: 1.0
+    enrichment:
+      semantic_scholar: true
+
+  ase:
+    name: "Automated Software Engineering"
+    short_name: "ASE"
+    strategy: "dblp_hybrid"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    dblp_venue: "ASE"
+    rate_limit: 1.0
+    enrichment:
+      semantic_scholar: true
+
+  issta:
+    name: "International Symposium on Software Testing and Analysis"
+    short_name: "ISSTA"
+    strategy: "dblp_hybrid"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    dblp_venue: "ISSTA"
+    rate_limit: 1.0
+    enrichment:
+      semantic_scholar: true
+
+  ccs:
+    name: "ACM Conference on Computer and Communications Security"
+    short_name: "CCS"
+    strategy: "dblp_hybrid"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    dblp_venue: "CCS"
+    rate_limit: 1.0
+    enrichment:
+      semantic_scholar: true
+
+  sp:
+    name: "IEEE Symposium on Security and Privacy"
+    short_name: "S&P"
+    strategy: "dblp_hybrid"
+    years_available: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    dblp_venue: "IEEE Symposium on Security and Privacy"
+    rate_limit: 1.0
+    enrichment:
+      semantic_scholar: true

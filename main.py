@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from retrievers.static_html import StaticHTMLRetriever
 from retrievers.openreview_api import OpenReviewRetriever
+from retrievers.dblp_hybrid import DBLPHybridRetriever
 from parsers.neurips_parser import NeurIPSParser
 from parsers.icml_parser import ICMLParser
 from parsers.usenix_parser import USENIXParser
@@ -62,6 +63,9 @@ def get_retriever(conference: str):
     elif strategy == 'openreview':
         return OpenReviewRetriever(conference, config)
     
+    elif strategy == 'dblp_hybrid':
+        return DBLPHybridRetriever(conference, config)
+    
     else:
         raise ValueError(f"Unknown strategy '{strategy}' for {conference}")
 
@@ -83,7 +87,7 @@ def main():
     
     parser.add_argument(
         'conference',
-        choices=['neurips', 'icml', 'usenix', 'iclr'],
+        choices=['neurips', 'icml', 'usenix', 'iclr', 'icse', 'fse', 'ase', 'issta', 'ccs', 'sp'],
         help='Conference to retrieve from'
     )
     
