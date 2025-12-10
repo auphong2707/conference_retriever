@@ -100,20 +100,48 @@ class SemanticScholarAPI:
                 
             except requests.exceptions.Timeout as e:
                 if attempt < 2:
-                    logger.warning(f"Timeout on attempt {attempt+1}/3 for '{title[:50]}...', retrying...")
+                    msg = f"⚠️  Timeout on attempt {attempt+1}/3 for '{title[:50]}...', retrying..."
+                    print(msg)
+                    logger.warning(msg)
                     time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s
                     continue
                 else:
-                    logger.warning(f"Timeout after 3 attempts for '{title[:50]}...'")
+                    msg = f"❌ Timeout after 3 attempts for '{title[:50]}...'"
+                    print(msg)
+                    logger.warning(msg)
+                    return None
+            except requests.exceptions.HTTPError as e:
+                # Handle rate limit errors (429) with longer backoff
+                if e.response.status_code == 429:
+                    if attempt < 2:
+                        wait_time = 10 * (attempt + 1)  # 10s, 20s
+                        msg = f"⚠️  Rate limit hit (429) on attempt {attempt+1}/3, waiting {wait_time}s..."
+                        print(msg)
+                        logger.warning(msg)
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        msg = f"❌ Rate limit error after 3 attempts for '{title[:50]}...'"
+                        print(msg)
+                        logger.warning(msg)
+                        return None
+                else:
+                    msg = f"❌ HTTP error {e.response.status_code} for '{title[:50]}...': {e}"
+                    print(msg)
+                    logger.warning(msg)
                     return None
             except requests.exceptions.RequestException as e:
                 # For other errors (like connection errors), try once more
                 if attempt < 2 and ('Connection' in str(e) or 'Timeout' in str(e)):
-                    logger.warning(f"Network error on attempt {attempt+1}/3, retrying...")
+                    msg = f"⚠️  Network error on attempt {attempt+1}/3, retrying..."
+                    print(msg)
+                    logger.warning(msg)
                     time.sleep(2 ** attempt)
                     continue
                 else:
-                    logger.warning(f"Error searching Semantic Scholar for '{title[:50]}...': {e}")
+                    msg = f"❌ Error searching Semantic Scholar for '{title[:50]}...': {e}"
+                    print(msg)
+                    logger.warning(msg)
                     return None
             except Exception as e:
                 logger.error(f"Unexpected error searching Semantic Scholar: {e}")
@@ -155,20 +183,49 @@ class SemanticScholarAPI:
                 
             except requests.exceptions.Timeout:
                 if attempt < 2:
-                    logger.warning(f"Timeout on attempt {attempt+1}/3 for DOI {doi}, retrying...")
+                    msg = f"⚠️  Timeout on attempt {attempt+1}/3 for DOI {doi}, retrying..."
+                    print(msg)
+                    logger.warning(msg)
                     time.sleep(2 ** attempt)
                     continue
                 else:
-                    logger.warning(f"Timeout after 3 attempts for DOI {doi}")
+                    msg = f"❌ Timeout after 3 attempts for DOI {doi}"
+                    print(msg)
+                    logger.warning(msg)
+                    self.cache.set(cache_key, None)
+                    return None
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 429:
+                    if attempt < 2:
+                        wait_time = 10 * (attempt + 1)
+                        msg = f"⚠️  Rate limit (429) for DOI {doi}, waiting {wait_time}s..."
+                        print(msg)
+                        logger.warning(msg)
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        msg = f"❌ Rate limit error after 3 attempts for DOI {doi}"
+                        print(msg)
+                        logger.warning(msg)
+                        self.cache.set(cache_key, None)
+                        return None
+                else:
+                    msg = f"❌ HTTP error {e.response.status_code} for DOI {doi}"
+                    print(msg)
+                    logger.warning(msg)
                     self.cache.set(cache_key, None)
                     return None
             except requests.exceptions.RequestException as e:
                 if attempt < 2 and ('Connection' in str(e) or 'Timeout' in str(e)):
-                    logger.warning(f"Network error on attempt {attempt+1}/3, retrying...")
+                    msg = f"⚠️  Network error on attempt {attempt+1}/3 for DOI {doi}, retrying..."
+                    print(msg)
+                    logger.warning(msg)
                     time.sleep(2 ** attempt)
                     continue
                 else:
-                    logger.warning(f"Error fetching DOI {doi} from Semantic Scholar: {e}")
+                    msg = f"❌ Error fetching DOI {doi}: {e}"
+                    print(msg)
+                    logger.warning(msg)
                     self.cache.set(cache_key, None)
                     return None
     
@@ -205,20 +262,49 @@ class SemanticScholarAPI:
                 
             except requests.exceptions.Timeout:
                 if attempt < 2:
-                    logger.warning(f"Timeout on attempt {attempt+1}/3 for arXiv {arxiv_id}, retrying...")
+                    msg = f"⚠️  Timeout on attempt {attempt+1}/3 for arXiv {arxiv_id}, retrying..."
+                    print(msg)
+                    logger.warning(msg)
                     time.sleep(2 ** attempt)
                     continue
                 else:
-                    logger.warning(f"Timeout after 3 attempts for arXiv {arxiv_id}")
+                    msg = f"❌ Timeout after 3 attempts for arXiv {arxiv_id}"
+                    print(msg)
+                    logger.warning(msg)
+                    self.cache.set(cache_key, None)
+                    return None
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 429:
+                    if attempt < 2:
+                        wait_time = 10 * (attempt + 1)
+                        msg = f"⚠️  Rate limit (429) for arXiv {arxiv_id}, waiting {wait_time}s..."
+                        print(msg)
+                        logger.warning(msg)
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        msg = f"❌ Rate limit error after 3 attempts for arXiv {arxiv_id}"
+                        print(msg)
+                        logger.warning(msg)
+                        self.cache.set(cache_key, None)
+                        return None
+                else:
+                    msg = f"❌ HTTP error {e.response.status_code} for arXiv {arxiv_id}"
+                    print(msg)
+                    logger.warning(msg)
                     self.cache.set(cache_key, None)
                     return None
             except requests.exceptions.RequestException as e:
                 if attempt < 2 and ('Connection' in str(e) or 'Timeout' in str(e)):
-                    logger.warning(f"Network error on attempt {attempt+1}/3, retrying...")
+                    msg = f"⚠️  Network error on attempt {attempt+1}/3 for arXiv {arxiv_id}, retrying..."
+                    print(msg)
+                    logger.warning(msg)
                     time.sleep(2 ** attempt)
                     continue
                 else:
-                    logger.warning(f"Error fetching arXiv {arxiv_id} from Semantic Scholar: {e}")
+                    msg = f"❌ Error fetching arXiv {arxiv_id}: {e}"
+                    print(msg)
+                    logger.warning(msg)
                     self.cache.set(cache_key, None)
                     return None
     
