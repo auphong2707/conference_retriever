@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 class OpenReviewRetriever(BaseRetriever):
     """Retriever for conferences using OpenReview API"""
     
-    def __init__(self, conference_key: str, config: Dict):
-        super().__init__(conference_key)
+    def __init__(self, conference_key: str, config: Dict, enable_semantic_scholar: bool = False, semantic_scholar_api_key: Optional[str] = None):
+        super().__init__(conference_key, enable_semantic_scholar, semantic_scholar_api_key)
         self.config = config
         self.conference_name = config.get('short_name', conference_key)
         self.rate_limit = config.get('rate_limit', 0.5)

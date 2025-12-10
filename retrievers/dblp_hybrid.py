@@ -59,15 +59,17 @@ class DBLPHybridRetriever(BaseRetriever):
         'Student',
     ]
     
-    def __init__(self, conference_name: str, config: Optional[Dict] = None):
+    def __init__(self, conference_name: str, config: Optional[Dict] = None, enable_semantic_scholar: bool = False, semantic_scholar_api_key: Optional[str] = None):
         """
         Initialize DBLP Hybrid Retriever
         
         Args:
             conference_name: Conference short name
             config: Optional configuration dictionary
+            enable_semantic_scholar: Whether to enrich papers with Semantic Scholar data (additional to DBLP's own enrichment)
+            semantic_scholar_api_key: Optional API key for Semantic Scholar
         """
-        super().__init__(conference_name)
+        super().__init__(conference_name, enable_semantic_scholar, semantic_scholar_api_key)
         self.config = config or {}
         self.rate_limit = self.config.get('rate_limit', 1.0)
         self.dblp_venue = self.DBLP_VENUES.get(conference_name.lower(), conference_name.upper())
@@ -77,7 +79,7 @@ class DBLPHybridRetriever(BaseRetriever):
         })
         
         # Add Semantic Scholar API key if available
-        api_key = os.getenv('SEMANTIC_SCHOLAR_API_KEY')
+        api_key = semantic_scholar_api_key or os.getenv('SEMANTIC_SCHOLAR_API_KEY')
         if api_key:
             self.session.headers['x-api-key'] = api_key
             logger.info("Using Semantic Scholar API key for higher rate limits")
@@ -118,7 +120,7 @@ class DBLPHybridRetriever(BaseRetriever):
         if limit:
             dblp_papers = dblp_papers[:limit]
         
-        # Step 2: Enrich with Semantic Scholar
+        # Step 2: Enrich with Semantic Scholar (DBLP's built-in enrichment)
         enriched_papers = []
         for i, paper in enumerate(dblp_papers):
             logger.info(f"Enriching paper {i+1}/{len(dblp_papers)}: {paper['title'][:60]}...")

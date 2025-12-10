@@ -5,20 +5,32 @@ Abstract base class for all conference retrievers
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BaseRetriever(ABC):
     """Abstract base class for conference paper retrievers"""
     
-    def __init__(self, conference_name: str):
+    def __init__(self, conference_name: str, enable_semantic_scholar: bool = False, semantic_scholar_api_key: Optional[str] = None):
         """
         Initialize the retriever
         
         Args:
             conference_name: Short name of the conference (e.g., 'neurips', 'icml')
+            enable_semantic_scholar: Whether to enrich papers with Semantic Scholar data
+            semantic_scholar_api_key: Optional API key for Semantic Scholar (higher rate limits)
         """
         self.conference_name = conference_name
         self.papers = []
+        self.enable_semantic_scholar = enable_semantic_scholar
+        self.semantic_scholar = None
+        
+        if enable_semantic_scholar:
+            from utils.semantic_scholar import SemanticScholarAPI
+            self.semantic_scholar = SemanticScholarAPI(api_key=semantic_scholar_api_key)
+            logger.info("Semantic Scholar enrichment enabled")
     
     @abstractmethod
     def get_papers(self, year: int, limit: Optional[int] = None) -> List[Dict]:
@@ -92,3 +104,19 @@ class BaseRetriever(ABC):
             papers = self.get_papers(year)
             all_papers.extend(papers)
         return all_papers
+    
+    def _enrich_papers_with_semantic_scholar(self, papers: List[Dict]) -> List[Dict]:
+        """
+        Enrich papers with Semantic Scholar data if enabled
+        
+        Args:
+            papers: List of paper dictionaries
+        
+        Returns:
+            Enriched papers (or original if enrichment disabled)
+        """
+        if not self.enable_semantic_scholar or not self.semantic_scholar:
+            return papers
+        
+        logger.info(f"Enriching {len(papers)} papers with Semantic Scholar data...")
+        return self.semantic_scholar.enrich_papers_batch(papers, show_progress=True)

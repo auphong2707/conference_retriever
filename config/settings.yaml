@@ -14,5 +14,10 @@ cache_ttl: 2592000  # 30 days in seconds
 global_rate_limit: 1  # requests per second
 request_timeout: 30  # seconds
 
+# Semantic Scholar Enrichment
+semantic_scholar:
+  enabled: true  # Enabled by default to fetch abstracts and additional metadata
+  api_key: null  # Optional: Set SEMANTIC_SCHOLAR_API_KEY environment variable for higher rate limits
+  
 # Logging
 log_level: "INFO"

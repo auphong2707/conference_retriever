@@ -13,15 +13,17 @@ from utils.cache_manager import CacheManager
 class StaticHTMLRetriever(BaseRetriever):
     """Retriever for conferences with static HTML pages"""
     
-    def __init__(self, conference_name: str, parser):
+    def __init__(self, conference_name: str, parser, enable_semantic_scholar: bool = False, semantic_scholar_api_key: Optional[str] = None):
         """
         Initialize static HTML retriever
         
         Args:
             conference_name: Short name of the conference
             parser: Parser instance for the specific conference
+            enable_semantic_scholar: Whether to enrich papers with Semantic Scholar data
+            semantic_scholar_api_key: Optional API key for Semantic Scholar
         """
-        super().__init__(conference_name)
+        super().__init__(conference_name, enable_semantic_scholar, semantic_scholar_api_key)
         self.parser = parser
         self.rate_limiter = RateLimiter(requests_per_second=1.0)
         self.cache = CacheManager(cache_dir=f"conference_retriever/.cache/{conference_name}")

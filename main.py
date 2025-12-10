@@ -10,6 +10,7 @@ import yaml
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 # Add the parent directory to the path to enable imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -31,7 +32,7 @@ logging.basicConfig(
 PARSERS = {
     'neurips': NeurIPSParser(),
     'icml': ICMLParser(),
-    'usenix': USENIXParser(),
+    'usenix_security': USENIXParser(),
 }
 
 
@@ -43,7 +44,15 @@ def load_conference_config():
     return config['conferences']
 
 
-def get_retriever(conference: str):
+def load_settings():
+    """Load global settings from YAML file"""
+    settings_path = Path(__file__).parent / 'config' / 'settings.yaml'
+    with open(settings_path, 'r') as f:
+        settings = yaml.safe_load(f)
+    return settings
+
+
+def get_retriever(conference: str, enable_semantic_scholar: bool = False, semantic_scholar_api_key: Optional[str] = None):
     """Get retriever for a conference based on its strategy"""
     configs = load_conference_config()
     
@@ -58,13 +67,13 @@ def get_retriever(conference: str):
         if conference not in PARSERS:
             raise ValueError(f"No parser available for {conference}")
         parser = PARSERS[conference]
-        return StaticHTMLRetriever(conference, parser)
+        return StaticHTMLRetriever(conference, parser, enable_semantic_scholar, semantic_scholar_api_key)
     
     elif strategy == 'openreview':
-        return OpenReviewRetriever(conference, config)
+        return OpenReviewRetriever(conference, config, enable_semantic_scholar, semantic_scholar_api_key)
     
     elif strategy == 'dblp_hybrid':
-        return DBLPHybridRetriever(conference, config)
+        return DBLPHybridRetriever(conference, config, enable_semantic_scholar, semantic_scholar_api_key)
     
     else:
         raise ValueError(f"Unknown strategy '{strategy}' for {conference}")
@@ -87,7 +96,7 @@ def main():
     
     parser.add_argument(
         'conference',
-        choices=['neurips', 'icml', 'usenix', 'iclr', 'icse', 'fse', 'ase', 'issta', 'ccs', 'sp'],
+        choices=['neurips', 'icml', 'usenix_security', 'iclr', 'icse', 'fse', 'ase', 'issta', 'ccs', 'sp'],
         help='Conference to retrieve from'
     )
     
@@ -113,6 +122,11 @@ def main():
         help='Output file path (default: output/{conference}_{year}.json)'
     )
     
+    parser.add_argument(
+        '--api-key',
+        help='Semantic Scholar API key for higher rate limits (or set SEMANTIC_SCHOLAR_API_KEY env var)'
+    )
+    
     args = parser.parse_args()
     
     # Determine years to retrieve
@@ -126,14 +140,27 @@ def main():
         print("Error: Please specify --year or --years")
         return
     
+    # Load settings and configure Semantic Scholar enrichment (enabled by default)
+    settings = load_settings()
+    enable_semantic_scholar = settings.get('semantic_scholar', {}).get('enabled', True)
+    
+    # Get API key from args, env, or settings
+    api_key = args.api_key or os.getenv('SEMANTIC_SCHOLAR_API_KEY') or settings.get('semantic_scholar', {}).get('api_key')
+    
+    if enable_semantic_scholar:
+        if api_key:
+            print("\n🔬 Enriching papers with Semantic Scholar (API key detected - higher rate limits)")
+        else:
+            print("\n🔬 Enriching papers with Semantic Scholar (limited rate - add API key for faster processing)")
+    
     # Get retriever
     try:
-        retriever = get_retriever(args.conference)
+        retriever = get_retriever(args.conference, enable_semantic_scholar, api_key)
     except ValueError as e:
         print(f"Error: {e}")
         return
     
-    # Retrieve papers
+    # Retrieve papers (without enrichment first)
     all_papers = []
     for year in years:
         try:
@@ -146,6 +173,11 @@ def main():
     if not all_papers:
         print("No papers retrieved")
         return
+    
+    # Enrich all papers with Semantic Scholar after scraping completes
+    if enable_semantic_scholar and retriever.semantic_scholar:
+        print(f"\n📚 Scraping complete. Starting enrichment for {len(all_papers)} papers...")
+        all_papers = retriever.semantic_scholar.enrich_papers_batch(all_papers, show_progress=True)
     
     # Determine output path
     if args.output:
