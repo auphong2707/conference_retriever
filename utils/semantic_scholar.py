@@ -36,8 +36,8 @@ class SemanticScholarAPI:
             })
         
         # Rate limiter: 100 req/5min without key, 5000 req/5min with key
-        # Be more conservative to avoid issues
-        requests_per_second = 2.0 if api_key else 0.3
+        # Be conservative to avoid rate limit issues: ~1 req/sec with key, 1 req/3sec without
+        requests_per_second = 1.0 if api_key else 0.33
         self.rate_limiter = RateLimiter(requests_per_second=requests_per_second)
         
         # Cache for API responses
@@ -409,9 +409,9 @@ class SemanticScholarAPI:
             enriched_papers.append(enriched_paper)
             
             # Enforce minimum delay between papers to be safe with rate limits
-            # Even for cached results, add small delay to avoid hammering the API if cache misses occur
+            # Increase delay to be more conservative (1 second minimum)
             if i < len(papers) - 1:
-                time.sleep(0.5)  # Half second between each paper
+                time.sleep(1.0)  # 1 full second between each paper
         
         # Log statistics
         enriched_count = sum(1 for p in enriched_papers if p.get('enriched_with_semantic_scholar'))
