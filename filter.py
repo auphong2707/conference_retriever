@@ -330,26 +330,21 @@ def main():
     if not args.keywords:
         keyword_groups = keyword_groups = {
             'agent': [
-                # Keep it simple: The entity acting on the code
                 'agent', 'agents', 
-                'autonomous', 'autonomy', # Defines "Agentic" vs just a model
-                'assistant', 'copilot',   # Common academic terms for coding agents
+                'autonomous', 'autonomy',
+                'assistant', 'copilot',
                 'bot', 'bots'
             ],
             'coding': [
-                # The Domain (Software) + The Action (Fixing)
                 'code', 'coding', 
                 'program', 'programming', 
-                'software', 'repository', 'git',
-                # Crucial for "Auto-Fixing":
-                'repair', 'patch', 'fix', 'debug' 
+                'software'
             ],
             'security': [
-                # The Goal
                 'security', 'secure', 
                 'vulnerability', 'vulnerabilities', 
                 'exploit', 'attack', 
-                'bug', 'defect', 'flaw' # "Automated Program Repair" (APR) often targets bugs
+                'bug', 'defect', 'flaw'
             ]
         }
         logger.info("Using default keywords: Agent + Coding + Security")
