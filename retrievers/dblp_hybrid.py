@@ -34,13 +34,32 @@ class DBLPHybridRetriever(BaseRetriever):
         'ase': 'ASE',
         'issta': 'ISSTA',
         'ccs': 'CCS',
-        'sp': 'IEEE Symposium on Security and Privacy'
+        'sp': 'SP'
+    }
+    
+    # DBLP Table of Contents (ToC) mappings - more reliable for getting complete proceedings
+    DBLP_TOC_PATTERNS = {
+        'sp': 'toc:db/conf/sp/sp{year}.bht:',
+        'ccs': 'toc:db/conf/ccs/ccs{year}.bht:',
+        'icse': 'toc:db/conf/icse/icse{year}.bht:',
+        'fse': 'toc:db/conf/sigsoft/fse{year}.bht:',
+        'ase': 'toc:db/conf/kbse/ase{year}.bht:',
+        'issta': 'toc:db/conf/issta/issta{year}.bht:',
     }
     
     # Alternative venue strings to try
     VENUE_ALTERNATIVES = {
         'fse': ['ESEC/FSE', 'SIGSOFT FSE', 'FSE'],
-        'sp': ['IEEE Symposium on Security and Privacy', 'IEEE S&P', 'Oakland']
+        'sp': ['SP', 'IEEE S&P']
+    }
+    
+    # Venue name normalization - convert DBLP short names to full conference names
+    VENUE_FULL_NAMES = {
+        'SP': 'IEEE Symposium on Security and Privacy',
+        'CCS': 'ACM Conference on Computer and Communications Security',
+        'ICSE': 'International Conference on Software Engineering',
+        'ASE': 'Automated Software Engineering',
+        'ISSTA': 'International Symposium on Software Testing and Analysis',
     }
     
     # Venue filters - exclude workshop/co-located events
@@ -145,11 +164,17 @@ class DBLPHybridRetriever(BaseRetriever):
             List of paper dictionaries from DBLP
         """
         all_papers = []
+        conf_key = self.conference_name.lower()
         
-        # Try different venue variations
+        # If we have a ToC pattern, use only that (it's the most reliable)
+        if conf_key in self.DBLP_TOC_PATTERNS:
+            papers = self._query_dblp_venue(self.dblp_venue, year)
+            return papers
+        
+        # Otherwise, try different venue variations
         venues_to_try = [self.dblp_venue]
-        if self.conference_name.lower() in self.VENUE_ALTERNATIVES:
-            venues_to_try.extend(self.VENUE_ALTERNATIVES[self.conference_name.lower()])
+        if conf_key in self.VENUE_ALTERNATIVES:
+            venues_to_try.extend(self.VENUE_ALTERNATIVES[conf_key])
         
         for venue in venues_to_try:
             papers = self._query_dblp_venue(venue, year)
@@ -178,13 +203,13 @@ class DBLPHybridRetriever(BaseRetriever):
         max_results = 1000  # DBLP max per request
         
         while True:
-            # Build query - use exact venue match
-            # For conferences, we want the main proceedings, not workshops
-            if self.conference_name.lower() == 'icse':
-                query = f'venue:ICSE year:{year}'  
-            elif self.conference_name.lower() == 'sp':
-                query = f'venue:"IEEE Symposium on Security and Privacy" year:{year}'
+            # Build query - prefer ToC approach for complete proceedings
+            conf_key = self.conference_name.lower()
+            if conf_key in self.DBLP_TOC_PATTERNS:
+                # Use Table of Contents approach for reliable, complete results
+                query = self.DBLP_TOC_PATTERNS[conf_key].format(year=year)
             else:
+                # Fall back to venue search
                 query = f'venue:{venue} year:{year}'
             
             params = {
@@ -266,6 +291,10 @@ class DBLPHybridRetriever(BaseRetriever):
         # Extract venue
         venue_elem = info.find('venue')
         venue = venue_elem.text.strip() if venue_elem is not None and venue_elem.text else ""
+        
+        # Normalize venue name to full conference name if available
+        if venue in self.VENUE_FULL_NAMES:
+            venue = self.VENUE_FULL_NAMES[venue]
         
         # Extract DOI
         doi_elem = info.find('doi')
