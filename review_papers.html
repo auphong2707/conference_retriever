@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Review Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* Header Section */
+        .header {
+            background: white;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out, transform 0.3s ease-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transform: translateY(-130px);
+        }
+
+        .header.visible {
+            max-height: 130px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+        .header-title {
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            color: #1a202c;
+            font-size: 18px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .stat-label {
+            color: #718096;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #2d3748;
+            font-size: 16px;
+        }
+
+        .header-bottom {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* Controls in header */
+        .controls {
+            display: contents;
+        }
+
+
+
+        .btn {
+            padding: 7px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #5a67d8;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4c51bf;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .progress-container {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: #e2e8f0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #48bb78;
+            transition: width 0.3s;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-top: 20px;
+            margin-top: 0;
+        }
+
+        /* Paper Card */
+        .paper-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .paper-card.included {
+            border-left: 4px solid #48bb78;
+            background: #f0fff4;
+        }
+
+        .paper-card.excluded {
+            border-left: 4px solid #fc8181;
+            background: #fffaf0;
+            opacity: 0.8;
+        }
+
+        .paper-card.mixed {
+            border-left: 4px solid #f6e05e;
+            background: #fffff0;
+        }
+
+        .paper-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .paper-title {
+            font-size: 20px;
+            color: #1a202c;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-right: 100px;
+            line-height: 1.5;
+        }
+
+        .paper-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .meta-item {
+            display: flex;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .authors {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 16px;
+        }
+
+        .authors strong {
+            color: #4a5568;
+        }
+
+        .paper-abstract {
+            background: #fafbfc;
+            border-left: 3px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 16px 0;
+            line-height: 1.7;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .paper-abstract strong {
+            color: #2d3748;
+        }
+
+        /* Keywords Section */
+        .keywords-section {
+            margin: 16px 0;
+            padding: 16px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+        }
+
+        .keywords-section h3 {
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 12px;
+        }
+
+        .keyword-category {
+            margin-bottom: 8px;
+        }
+
+        .category-name {
+            font-weight: 700;
+            color: #5a67d8;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+
+        .keyword-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 3px 4px 3px 0;
+            color: #4a5568;
+        }
+
+        /* Actions Section */
+        .paper-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .selection-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .selection-btn {
+            padding: 14px 20px;
+            border: 2px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .selection-btn.include {
+            background: #f0fff4;
+            border-color: #48bb78;
+            color: #22543d;
+        }
+
+        .selection-btn.include:hover {
+            background: #c6f6d5;
+        }
+
+        .selection-btn.include.active {
+            background: #48bb78;
+            color: white;
+        }
+
+        .selection-btn.neutral {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+            color: #4a5568;
+        }
+
+        .selection-btn.neutral:hover {
+            background: #edf2f7;
+        }
+
+        .selection-btn.neutral.active {
+            background: #e2e8f0;
+        }
+
+        .selection-btn.exclude {
+            background: #fff5f5;
+            border-color: #fc8181;
+            color: #742a2a;
+        }
+
+        .selection-btn.exclude:hover {
+            background: #fed7d7;
+        }
+
+        .selection-btn.exclude.active {
+            background: #fc8181;
+            color: white;
+        }
+
+        .selection-btn.mixed {
+            background: #fefcbf;
+            border-color: #f6e05e;
+            color: #744210;
+        }
+
+        .selection-btn.mixed:hover {
+            background: #faf089;
+        }
+
+        .selection-btn.mixed.active {
+            background: #f6e05e;
+            color: #744210;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .link-btn {
+            text-decoration: none;
+            color: #5a67d8;
+            padding: 8px 14px;
+            border: 1px solid #cbd5e0;
+            background: white;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .link-btn:hover {
+            background: #5a67d8;
+            color: white;
+            border-color: #5a67d8;
+        }
+
+        /* Alert Messages */
+        .alert-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .alert.hide-notification {
+            display: none;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #48bb78;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border: 1px solid #4299e1;
+        }
+
+        /* Loading & Empty States */
+        .loading, .no-papers {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .loading h2, .no-papers h2 {
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+
+        .loading p, .no-papers p {
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-top">
+                <div class="header-title">
+                    <h1>📚 Paper Review Tool</h1>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total:</span>
+                        <span class="stat-value" id="totalCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Included:</span>
+                        <span class="stat-value" id="selectedCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Excluded:</span>
+                        <span class="stat-value" id="excludedCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Pending:</span>
+                        <span class="stat-value" id="pendingCount">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
+                <button class="btn btn-primary" onclick="loadFile()">📁 Load JSON File</button>
+                <button class="btn btn-success" onclick="saveIncluded()" id="saveIncludedBtn" disabled>💾 Save Included</button>
+                <button class="btn btn-success" onclick="saveMixed()" id="saveMixedBtn" disabled>💾 Save Mixed</button>
+                <button class="btn btn-secondary" onclick="includeAll()">✓ Include All</button>
+                <button class="btn btn-secondary" onclick="excludeAll()">✗ Exclude All</button>
+                <button class="btn btn-secondary" onclick="resetAll()">⟲ Reset</button>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls" style="display: none;"></div>
+
+    <div class="alert-container" id="alertContainer"></div>
+
+    <div class="main-content" id="paperContainer">
+        <div class="loading">
+            <h2>👆 Click "Load JSON File" to get started</h2>
+            <p>Load your combined_filtered_results.json file to begin reviewing papers</p>
+        </div>
+    </div>
+
+    <script>
+        let papers = [];
+        let includedPapers = new Set();
+        let excludedPapers = new Set();
+        let mixedPapers = new Set();
+        let currentPaperIndex = 0;
+
+        // Load file
+        function loadFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    // Handle both direct array and object with papers property
+                    papers = Array.isArray(data) ? data : (data.papers || []);
+                    
+                    if (papers.length === 0) {
+                        showAlert('No papers found in the file', 'info');
+                        return;
+                    }
+
+                    loadSavedSelections();
+                    showAlert(`Successfully loaded ${papers.length} papers!`, 'success');
+                    renderPapers();
+                    updateStats();
+                    document.getElementById('saveIncludedBtn').disabled = false;
+                    document.getElementById('saveMixedBtn').disabled = false;
+                } catch (err) {
+                    showAlert('Error reading file: ' + err.message, 'info');
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Load saved selections
+        function loadSavedSelections() {
+            const savedIncluded = localStorage.getItem('includedPapers');
+            const savedExcluded = localStorage.getItem('excludedPapers');
+            const savedMixed = localStorage.getItem('mixedPapers');
+            if (savedIncluded) includedPapers = new Set(JSON.parse(savedIncluded));
+            if (savedExcluded) excludedPapers = new Set(JSON.parse(savedExcluded));
+            if (savedMixed) mixedPapers = new Set(JSON.parse(savedMixed));
+        }
+
+        // Save selections
+        function saveSelections() {
+            localStorage.setItem('includedPapers', JSON.stringify([...includedPapers]));
+            localStorage.setItem('excludedPapers', JSON.stringify([...excludedPapers]));
+            localStorage.setItem('mixedPapers', JSON.stringify([...mixedPapers]));
+        }
+
+        // Render papers
+        function renderPapers() {
+            const container = document.getElementById('paperContainer');
+            container.innerHTML = '';
+
+            if (papers.length === 0) {
+                container.innerHTML = '<div class="no-papers"><h2>No papers to display</h2></div>';
+                return;
+            }
+
+            papers.forEach((paper, index) => {
+                const card = createPaperCard(paper, index);
+                container.appendChild(card);
+            });
+        }
+
+        // Create paper card
+        function createPaperCard(paper, index) {
+            const card = document.createElement('div');
+            const paperId = paper.paper_id || paper.paperId || index;
+            
+            const isIncluded = includedPapers.has(paperId);
+            const isExcluded = excludedPapers.has(paperId);
+            const isMixed = mixedPapers.has(paperId);
+            
+            card.className = 'paper-card';
+            card.id = `paper-${index}`;
+            if (isIncluded) card.classList.add('included');
+            if (isExcluded) card.classList.add('excluded');
+            if (isMixed) card.classList.add('mixed');
+
+            const authors = paper.authors || [];
+            const authorNames = authors.length > 0 ? 
+                (typeof authors[0] === 'string' ? authors.join(', ') : authors.map(a => a.name || a).join(', ')) : 
+                '';
+            const matchedKeywords = paper.matched_keywords || {};
+
+            card.innerHTML = `
+                <div class="paper-number">${index + 1} / ${papers.length}</div>
+                
+                <h2 class="paper-title">${paper.title || 'Untitled'}</h2>
+                
+                <div class="paper-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Year:</span>
+                        <span>${paper.year || 'N/A'}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Conference:</span>
+                        <span>${paper.conference || paper.venue || paper.venue_name || 'N/A'}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Citations:</span>
+                        <span>${paper.citation_count || 0}</span>
+                    </div>
+                    ${paper.source ? `<div class="meta-item">
+                        <span class="meta-label">Source:</span>
+                        <span>${paper.source}</span>
+                    </div>` : ''}
+                    ${paper.doi ? `<div class="meta-item">
+                        <span class="meta-label">DOI:</span>
+                        <span>${paper.doi}</span>
+                    </div>` : ''}
+                    ${paper.arxiv_id ? `<div class="meta-item">
+                        <span class="meta-label">arXiv:</span>
+                        <span>${paper.arxiv_id}</span>
+                    </div>` : ''}
+                </div>
+
+                ${authorNames ? `<div class="authors"><strong>Authors:</strong> ${authorNames}</div>` : ''}
+
+                <div class="paper-abstract">
+                    <strong>Abstract:</strong><br><br>
+                    ${paper.abstract || 'No abstract available'}
+                </div>
+
+                ${Object.keys(matchedKeywords).length > 0 ? `
+                <div class="keywords-section">
+                    <h3>🎯 Matched Keywords:</h3>
+                    ${Object.entries(matchedKeywords).map(([category, keywords]) => `
+                        <div class="keyword-category">
+                            <span class="category-name">${category}:</span>
+                            ${Array.isArray(keywords) ? keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('') : `<span class="keyword-tag">${keywords}</span>`}
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+                ${paper.fields_of_study && paper.fields_of_study.length > 0 ? `
+                <div class="keywords-section">
+                    <h3>📚 Fields of Study:</h3>
+                    <div class="keyword-category">
+                        ${paper.fields_of_study.map(field => `<span class="keyword-tag">${field}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="paper-actions">
+                    <div class="selection-buttons">
+                        <button class="selection-btn include ${isIncluded ? 'active' : ''}" onclick="setInclude(${index})">
+                            ✓ Include (1)
+                        </button>
+                        <button class="selection-btn mixed ${isMixed ? 'active' : ''}" onclick="setMixed(${index})">
+                            ⚡ Mixed (2)
+                        </button>
+                        <button class="selection-btn neutral ${!isIncluded && !isExcluded && !isMixed ? 'active' : ''}" onclick="setNeutral(${index})">
+                            ○ Pending (3)
+                        </button>
+                        <button class="selection-btn exclude ${isExcluded ? 'active' : ''}" onclick="setExclude(${index})">
+                            ✗ Exclude (4)
+                        </button>
+                    </div>
+                    <div class="navigation">
+                        ${paper.url ? `<a href="${paper.url}" target="_blank" class="link-btn">📄 View Paper</a>` : ''}
+                        ${paper.pdf_url ? `<a href="${paper.pdf_url}" target="_blank" class="link-btn">📥 PDF</a>` : ''}
+                        ${paper.semantic_scholar_url ? `<a href="${paper.semantic_scholar_url}" target="_blank" class="link-btn">🔍 Semantic Scholar</a>` : ''}
+                        ${paper.doi ? `<a href="https://doi.org/${paper.doi}" target="_blank" class="link-btn">🔗 DOI</a>` : ''}
+                        ${paper.arxiv_id ? `<a href="https://arxiv.org/abs/${paper.arxiv_id}" target="_blank" class="link-btn">📚 arXiv</a>` : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function setInclude(index) {
+            const paperId = papers[index].paper_id || papers[index].paperId || index;
+            includedPapers.add(paperId);
+            excludedPapers.delete(paperId);
+            mixedPapers.delete(paperId);
+            saveSelections();
+            updateStats();
+            updatePaperCard(index);
+        }
+
+        function setMixed(index) {
+            const paperId = papers[index].paper_id || papers[index].paperId || index;
+            mixedPapers.add(paperId);
+            includedPapers.delete(paperId);
+            excludedPapers.delete(paperId);
+            saveSelections();
+            updateStats();
+            updatePaperCard(index);
+        }
+
+        function setExclude(index) {
+            const paperId = papers[index].paper_id || papers[index].paperId || index;
+            excludedPapers.add(paperId);
+            includedPapers.delete(paperId);
+            mixedPapers.delete(paperId);
+            saveSelections();
+            updateStats();
+            updatePaperCard(index);
+        }
+
+        function setNeutral(index) {
+            const paperId = papers[index].paper_id || papers[index].paperId || index;
+            includedPapers.delete(paperId);
+            excludedPapers.delete(paperId);
+            mixedPapers.delete(paperId);
+            saveSelections();
+            updateStats();
+            updatePaperCard(index);
+        }
+
+        // Update only the paper card without rerendering all
+        function updatePaperCard(index) {
+            const card = document.getElementById(`paper-${index}`);
+            if (!card) return;
+
+            const paper = papers[index];
+            const paperId = paper.paper_id || paper.paperId || index;
+            const isIncluded = includedPapers.has(paperId);
+            const isExcluded = excludedPapers.has(paperId);
+            const isMixed = mixedPapers.has(paperId);
+
+            // Update card classes
+            card.classList.remove('included', 'excluded', 'mixed');
+            if (isIncluded) card.classList.add('included');
+            if (isExcluded) card.classList.add('excluded');
+            if (isMixed) card.classList.add('mixed');
+
+            // Update button states
+            const includeBtn = card.querySelector('.selection-btn.include');
+            const mixedBtn = card.querySelector('.selection-btn.mixed');
+            const neutralBtn = card.querySelector('.selection-btn.neutral');
+            const excludeBtn = card.querySelector('.selection-btn.exclude');
+
+            includeBtn.classList.remove('active');
+            mixedBtn.classList.remove('active');
+            neutralBtn.classList.remove('active');
+            excludeBtn.classList.remove('active');
+
+            if (isIncluded) {
+                includeBtn.classList.add('active');
+            } else if (isMixed) {
+                mixedBtn.classList.add('active');
+            } else if (isExcluded) {
+                excludeBtn.classList.add('active');
+            } else {
+                neutralBtn.classList.add('active');
+            }
+        }
+
+        function includeAll() {
+            papers.forEach((paper, index) => {
+                const paperId = paper.paper_id || paper.paperId || index;
+                includedPapers.add(paperId);
+            });
+            excludedPapers.clear();
+            mixedPapers.clear();
+            saveSelections();
+            renderPapers();
+            updateStats();
+        }
+
+        function excludeAll() {
+            papers.forEach((paper, index) => {
+                const paperId = paper.paper_id || paper.paperId || index;
+                excludedPapers.add(paperId);
+            });
+            includedPapers.clear();
+            mixedPapers.clear();
+            saveSelections();
+            renderPapers();
+            updateStats();
+        }
+
+        function resetAll() {
+            includedPapers.clear();
+            excludedPapers.clear();
+            mixedPapers.clear();
+            saveSelections();
+            renderPapers();
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const pendingCount = papers.length - includedPapers.size - excludedPapers.size - mixedPapers.size;
+            
+            document.getElementById('totalCount').textContent = papers.length;
+            document.getElementById('selectedCount').textContent = includedPapers.size;
+            document.getElementById('excludedCount').textContent = excludedPapers.size;
+            document.getElementById('pendingCount').textContent = `${pendingCount} | Mixed: ${mixedPapers.size}`;
+            
+            const reviewedCount = includedPapers.size + excludedPapers.size + mixedPapers.size;
+            const progress = papers.length > 0 ? (reviewedCount / papers.length * 100).toFixed(1) : 0;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Save included papers
+        function saveIncluded() {
+            if (includedPapers.size === 0) {
+                showAlert('No papers included. Please include at least one paper.', 'info');
+                return;
+            }
+
+            const selected = papers.filter((paper, index) => {
+                const paperId = paper.paper_id || paper.paperId || index;
+                return includedPapers.has(paperId);
+            });
+
+            const output = {
+                metadata: {
+                    export_date: new Date().toISOString(),
+                    total_papers: selected.length,
+                    included_count: includedPapers.size,
+                    mixed_count: mixedPapers.size,
+                    excluded_count: excludedPapers.size,
+                    source: "manually reviewed and selected papers (included only)"
+                },
+                papers: selected
+            };
+
+            const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'included_papers.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showAlert(`Successfully saved ${selected.length} included papers!`, 'success');
+        }
+
+        // Save mixed papers
+        function saveMixed() {
+            if (mixedPapers.size === 0) {
+                showAlert('No papers marked as mixed. Please mark at least one paper as mixed.', 'info');
+                return;
+            }
+
+            const mixed = papers.filter((paper, index) => {
+                const paperId = paper.paper_id || paper.paperId || index;
+                return mixedPapers.has(paperId);
+            });
+
+            const output = {
+                metadata: {
+                    export_date: new Date().toISOString(),
+                    total_papers: mixed.length,
+                    included_count: includedPapers.size,
+                    mixed_count: mixedPapers.size,
+                    excluded_count: excludedPapers.size,
+                    source: "manually reviewed and selected papers (mixed/partially related)"
+                },
+                papers: mixed
+            };
+
+            const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mixed_papers.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showAlert(`Successfully saved ${mixed.length} mixed papers!`, 'success');
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            // Hide navigation alerts (page counter)
+            if (message.includes('Paper')) {
+                alert.classList.add('hide-notification');
+            }
+            
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Auto-hide header and controls - show on mouse move to top
+        let headerTimeout;
+        const header = document.querySelector('.header');
+
+        document.addEventListener('mousemove', function(e) {
+            // Show header when mouse is in top 150px
+            if (e.clientY < 150) {
+                header.classList.add('visible');
+                clearTimeout(headerTimeout);
+            } else {
+                clearTimeout(headerTimeout);
+                headerTimeout = setTimeout(() => {
+                    header.classList.remove('visible');
+                }, 3000);
+            }
+        }, { passive: true });
+
+        // Hide header when mouse leaves window
+        document.addEventListener('mouseleave', function() {
+            clearTimeout(headerTimeout);
+            header.classList.remove('visible');
+        });
+
+        // Keyboard controls (optimized)
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+O for open file
+            if (e.ctrlKey && e.key === 'o') {
+                e.preventDefault();
+                document.getElementById('fileInput').click();
+                return;
+            }
+
+            if (papers.length === 0) return;
+
+            // Number keys for selection
+            if (e.key === '1') {
+                e.preventDefault();
+                setInclude(currentPaperIndex);
+                showAlert('Paper marked as INCLUDED (1)', 'success');
+            } else if (e.key === '2') {
+                e.preventDefault();
+                setMixed(currentPaperIndex);
+                showAlert('Paper marked as MIXED (2)', 'info');
+            } else if (e.key === '3') {
+                e.preventDefault();
+                setNeutral(currentPaperIndex);
+                showAlert('Paper marked as PENDING (3)', 'info');
+            } else if (e.key === '4') {
+                e.preventDefault();
+                setExclude(currentPaperIndex);
+                showAlert('Paper marked as EXCLUDED (4)', 'info');
+            }
+            // Arrow keys for navigation
+            else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                if (currentPaperIndex < papers.length - 1) {
+                    currentPaperIndex++;
+                    scrollToCurrentPaper();
+                }
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentPaperIndex > 0) {
+                    currentPaperIndex--;
+                    scrollToCurrentPaper();
+                }
+            }
+        }, { passive: false });
+
+        // Scroll to current paper (optimized)
+        function scrollToCurrentPaper() {
+            const card = document.getElementById(`paper-${currentPaperIndex}`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'auto', block: 'start' });
+            }
+        }
+
+        // Track current paper when scrolling (optimized)
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const cards = document.querySelectorAll('.paper-card');
+                let closest = 0;
+                let closestDistance = Infinity;
+
+                for (let i = 0; i < cards.length; i++) {
+                    const rect = cards[i].getBoundingClientRect();
+                    const distance = Math.abs(rect.top - 100);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closest = i;
+                    }
+                }
+
+                currentPaperIndex = closest;
+            }, 50);
+        }, { passive: true });
+    </script>
+</body>
+</html>
